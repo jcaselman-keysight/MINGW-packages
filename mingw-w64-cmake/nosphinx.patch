@@ -1,0 +1,13 @@
+diff --git a/Utilities/CMakeLists.txt b/Utilities/CMakeLists.txt
+index 056454019d..2a3b852dee 100644
+--- a/Utilities/CMakeLists.txt
++++ b/Utilities/CMakeLists.txt
+@@ -23,7 +23,7 @@ if(CMAKE_DOC_TARBALL)
+           DESTINATION . USE_SOURCE_PERMISSIONS)
+ else()
+   # Normal documentation build.
+-  add_subdirectory(Sphinx)
++  #add_subdirectory(Sphinx)
+ endif()
+ 
+ if(WIX_CUSTOM_ACTION_ENABLED)
