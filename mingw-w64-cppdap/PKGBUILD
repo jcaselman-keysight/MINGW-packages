@@ -8,7 +8,7 @@ _pkgver=1.65
 pkgver=${_pkgver/-/}
 # tags are missing, see https://github.com/google/cppdap/issues/132
 _commit="37c744c294cbb24943a3913bbb67860d1609008c"
-pkgrel=1
+pkgrel=99
 pkgdesc="C++ library for the Debug Adapter Protocol (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
@@ -22,6 +22,11 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
 source=("${_realname}"::"git+https://github.com/google/cppdap.git#commit=${_commit}")
 sha256sums=('3984fe87c3895b36db7bd2677602aed172f4587e517b38429efa53de7d47a303')
+options=(!strip)
+prepare() {
+    cd "$srcdir/${_realname}"
+    git submodule update --init --recursive
+}
 
 build() {
   mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
@@ -41,6 +46,8 @@ build() {
       "${extra_config[@]}" \
       -DCPPDAP_USE_EXTERNAL_JSONCPP_PACKAGE=ON \
       -DBUILD_SHARED_LIBS=ON \
+      -DCPPDAP_BUILD_TESTS=ON \
+      -DCMAKE_BUILD_TYPE=DEBUG \
       ../${_realname}
 
   "${MINGW_PREFIX}"/bin/cmake.exe --build .
