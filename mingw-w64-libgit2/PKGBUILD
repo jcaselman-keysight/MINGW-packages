@@ -3,7 +3,8 @@
 _realname=libgit2
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-winhttp")
+         "${MINGW_PACKAGE_PREFIX}-${_realname}-winhttp"
+         "${MINGW_PACKAGE_PREFIX}-${_realname}-schannel")
 pkgver=1.9.0
 pkgrel=1
 pkgdesc='A linkable library for Git (mingw-w64)'
@@ -56,6 +57,8 @@ do_build() {
 
   if [ "${_variant}" = "-winhttp" ]; then
     _extra_config+=("-DUSE_HTTPS=WinHTTP")
+  elif [ "${_variant}" = "-schannel" ]; then
+    _extra_config+=("-DUSE_HTTPS=Schannel")
   elif [ "${_variant}" = "-openssl" ]; then
     _extra_config+=("-DUSE_HTTPS=OpenSSL")
   fi
@@ -103,6 +106,7 @@ do_build() {
 build() {
   do_build -openssl
   do_build -winhttp
+  do_build -schannel
 }
 
 check() {
@@ -112,6 +116,11 @@ check() {
   ${MINGW_PREFIX}/bin/ctest . || true
 
   cd "${srcdir}"/build-${MSYSTEM}-winhttp-shared
+  ${MINGW_PREFIX}/bin/cmake -DBUILD_TESTS=ON ../${_realname}-${pkgver}
+  ${MINGW_PREFIX}/bin/cmake --build .
+  ${MINGW_PREFIX}/bin/ctest . || true
+
+  cd "${srcdir}"/build-${MSYSTEM}-schannel-shared
   ${MINGW_PREFIX}/bin/cmake -DBUILD_TESTS=ON ../${_realname}-${pkgver}
   ${MINGW_PREFIX}/bin/cmake --build .
   ${MINGW_PREFIX}/bin/ctest . || true
@@ -135,6 +144,19 @@ package_libgit2-winhttp() {
 
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install "build-${MSYSTEM}-winhttp-static"
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install "build-${MSYSTEM}-winhttp-shared"
+
+  local PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
+  for pcfile in "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/*.pc; do
+    sed -s "s|${PREFIX_WIN}|${MINGW_PREFIX}|g" -i "${pcfile}"
+  done
+}
+
+package_libgit2-schannel() {
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install "build-${MSYSTEM}-schannel-static"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install "build-${MSYSTEM}-schannel-shared"
 
   local PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
   for pcfile in "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/*.pc; do
